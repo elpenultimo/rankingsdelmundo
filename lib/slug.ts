@@ -1,7 +1,7 @@
-export const toSlug = (value: string): string =>
+export const slugify = (value: string): string =>
   value
-    .toLowerCase()
     .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
+    .replace(/(^-|-$)/g, "");

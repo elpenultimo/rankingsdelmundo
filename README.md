@@ -28,6 +28,19 @@ npm run build
 npm run start
 ```
 
+## Rutas principales
+
+- `/` — Home.
+- `/rankings` — Listado con filtros por categoría, región, año, orden y búsqueda.
+- `/ranking/[slug]` — Ranking base.
+- `/ranking/[slug]/region/[region]` — Ranking filtrado por región.
+- `/ranking/[slug]/anio/[year]` — Ranking filtrado por año.
+- `/ranking/[slug]/region/[region]/anio/[year]` — Ranking filtrado por región y año.
+- `/paises` — Directorio de países.
+- `/ciudades` — Directorio de ciudades.
+- `/pais/[slug]` — Ficha de país.
+- `/ciudad/[slug]` — Ficha de ciudad.
+
 ## Despliegue en Vercel
 
 1. Conecta el repositorio a Vercel.
