@@ -5,6 +5,7 @@ import { rankingYears, regionKeys } from "../data/taxonomy";
 import { categoryKeys } from "../lib/categories";
 import { buildComparePairs, getTopCities, getTopCountries } from "../lib/compare";
 import { siteConfig } from "../lib/seo";
+import { topicKeys } from "../lib/topics";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = siteConfig.url;
@@ -14,7 +15,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/paises",
     "/ciudades",
     "/comparar",
-    "/categorias"
+    "/categorias",
+    "/temas",
+    "/metodologia"
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date()
@@ -28,6 +31,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const rankingRoutes = rankings.map((ranking) => ({
     url: `${baseUrl}/ranking/${ranking.slug}`,
     lastModified: new Date(ranking.updatedAt)
+  }));
+
+  const topicRoutes = topicKeys.map((topicKey) => ({
+    url: `${baseUrl}/tema/${topicKey}`,
+    lastModified: new Date()
   }));
 
   const rankingRegionRoutes = rankings.flatMap((ranking) =>
@@ -79,6 +87,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...rankingRegionRoutes,
     ...rankingYearRoutes,
     ...rankingRegionYearRoutes,
+    ...topicRoutes,
     ...categoryRoutes,
     ...countryRoutes,
     ...cityRoutes,

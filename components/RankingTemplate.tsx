@@ -14,6 +14,7 @@ export const RankingTemplate = ({
   introLines,
   methodologyNote,
   related,
+  relatedTopics,
   breadcrumbs,
   faqSchema,
   itemListSchema
@@ -25,6 +26,7 @@ export const RankingTemplate = ({
   introLines?: string[];
   methodologyNote?: string;
   related: Ranking[];
+  relatedTopics?: Array<{ key: string; label: string }>;
   breadcrumbs: object;
   faqSchema: object;
   itemListSchema: object;
@@ -103,6 +105,23 @@ export const RankingTemplate = ({
       <h2 className="section-title">Rankings relacionados</h2>
       <RelatedRankings rankings={related} />
     </section>
+
+    {relatedTopics?.length ? (
+      <section className="space-y-4">
+        <h2 className="section-title">Relacionado: temas</h2>
+        <div className="flex flex-wrap gap-2">
+          {relatedTopics.map((topic) => (
+            <Link
+              key={topic.key}
+              href={`/tema/${topic.key}`}
+              className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:text-slate-300"
+            >
+              {topic.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+    ) : null}
 
     {compareLinks.length ? (
       <section className="space-y-4">

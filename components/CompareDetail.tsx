@@ -24,6 +24,7 @@ type CompareDetailProps = {
   rankingsB: Ranking[];
   relatedRankings: Ranking[];
   similarComparisons: Array<{ label: string; href: string }>;
+  topicLinks?: Array<{ key: string; label: string }>;
   faq: { q: string; a: string }[];
   breadcrumbs: object;
   faqSchema: object;
@@ -65,6 +66,7 @@ export const CompareDetail = ({
   rankingsB,
   relatedRankings,
   similarComparisons,
+  topicLinks,
   faq,
   breadcrumbs,
   faqSchema,
@@ -175,6 +177,23 @@ export const CompareDetail = ({
         .
       </div>
     </section>
+
+    {topicLinks?.length ? (
+      <section className="space-y-4">
+        <h2 className="section-title">Temas relacionados</h2>
+        <div className="flex flex-wrap gap-2">
+          {topicLinks.map((topic) => (
+            <Link
+              key={topic.key}
+              href={`/tema/${topic.key}`}
+              className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:text-slate-300"
+            >
+              {topic.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+    ) : null}
 
     {similarComparisons.length ? (
       <section className="space-y-4">

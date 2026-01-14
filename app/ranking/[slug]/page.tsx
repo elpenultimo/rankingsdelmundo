@@ -8,6 +8,8 @@ import {
   buildRankingMetadata,
   siteConfig
 } from "../../../lib/seo";
+import { getTopicsForRanking } from "../../../lib/topic-discovery";
+import { topics } from "../../../lib/topics";
 
 export const generateMetadata = async ({ params }: { params: { slug: string } }) => {
   const ranking = getRankingBySlug(params.slug);
@@ -23,6 +25,10 @@ export default function RankingPage({ params }: { params: { slug: string } }) {
   }
 
   const related = rankings.filter((item) => ranking.related.includes(item.slug));
+  const relatedTopics = getTopicsForRanking(ranking, 3).map((key) => ({
+    key,
+    label: topics[key].label
+  }));
 
   const breadcrumbs = buildBreadcrumbs([
     { name: "Inicio", url: siteConfig.url },
@@ -40,6 +46,7 @@ export default function RankingPage({ params }: { params: { slug: string } }) {
       pageTitle={ranking.title}
       description={ranking.description}
       related={related}
+      relatedTopics={relatedTopics}
       breadcrumbs={breadcrumbs}
       faqSchema={faqSchema}
       itemListSchema={itemListSchema}
