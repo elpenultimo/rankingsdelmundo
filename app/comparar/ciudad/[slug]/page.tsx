@@ -17,6 +17,16 @@ import {
 } from "../../../../lib/compare";
 import { buildCompareDetailPath, parseCompareSlug } from "../../../../lib/url";
 import { buildBreadcrumbs, buildFAQPage, buildMetadata, siteConfig } from "../../../../lib/seo";
+import { topics, type TopicKey } from "../../../../lib/topics";
+
+const buildTopicLinks = (rows: ComparisonRow[], limit = 3) => {
+  const metricKeys = new Set(rows.map((row) => row.key));
+  const matches = (Object.keys(topics) as TopicKey[])
+    .filter((topicKey) => topics[topicKey].metricKeys.some((key) => metricKeys.has(key)))
+    .slice(0, limit);
+
+  return matches.map((key) => ({ key, label: topics[key].label }));
+};
 
 const buildComparisonRows = (
   metricsA: ReturnType<typeof getComparableMetricsForCity>,
@@ -121,6 +131,7 @@ export default function CityComparePage({ params }: { params: { slug: string } }
       href: buildCompareDetailPath("ciudad", comparison.a.slug, comparison.b.slug)
     })
   );
+  const topicLinks = buildTopicLinks(rows, 3);
 
   return (
     <CompareDetail
@@ -135,6 +146,7 @@ export default function CityComparePage({ params }: { params: { slug: string } }
       rankingsB={entityB.rankings}
       relatedRankings={relatedRankings}
       similarComparisons={similarComparisons}
+      topicLinks={topicLinks}
       faq={compareFaq}
       breadcrumbs={breadcrumbs}
       faqSchema={faqSchema}

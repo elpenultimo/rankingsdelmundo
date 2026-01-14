@@ -14,6 +14,7 @@ import {
 } from "../../../lib/categories";
 import { buildBreadcrumbs, buildFAQPage, buildMetadata, siteConfig } from "../../../lib/seo";
 import { regionLabels } from "../../../lib/regions";
+import { topicKeys, topics } from "../../../lib/topics";
 
 const buildHighlightRankings = (category: (typeof categoryKeys)[number]) => {
   const primary = featuredRankings.filter((ranking) => ranking.category === category);
@@ -103,6 +104,7 @@ export default function CategoryHubPage({ params }: { params: { cat: string } })
 
   const popularEntities = topEntities.slice(0, 12);
   const otherCategories = categoryKeys.filter((key) => key !== categoryKey);
+  const popularTopics = topicKeys.slice(0, 8).map((key) => topics[key]);
 
   const breadcrumbs = buildBreadcrumbs([
     { name: "Inicio", url: siteConfig.url },
@@ -208,6 +210,26 @@ export default function CategoryHubPage({ params }: { params: { cat: string } })
                 ))}
               </div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="section-title">Temas populares</h2>
+          <Link href="/temas" className="link-muted">
+            Ver todos los temas
+          </Link>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {popularTopics.map((topic) => (
+            <Link
+              key={topic.key}
+              href={`/tema/${topic.key}`}
+              className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:text-slate-300"
+            >
+              {topic.label}
+            </Link>
           ))}
         </div>
       </section>

@@ -59,6 +59,8 @@ Los rankings viven en `data/rankings.ts`. Por ahora no hay base de datos y los d
 - `/rankings` Listado con filtros y búsqueda.
 - `/categorias` Índice de categorías de rankings.
 - `/categoria/[cat]` Hubs temáticos por categoría (paises, ciudades, dinero, clima, vida).
+- `/temas` Índice de hubs temáticos.
+- `/tema/[topic]` Hub temático con rankings, comparaciones y entidades destacadas.
 - `/ranking/[slug]` Detalle del ranking.
 - `/ranking/[slug]/region/[region]` Segmentación por región.
 - `/ranking/[slug]/anio/[year]` Segmentación por año.
@@ -72,3 +74,4 @@ Los rankings viven en `data/rankings.ts`. Por ahora no hay base de datos y los d
 - `/comparar/ciudad/[a]-vs-[b]` Comparativa entre ciudades.
 - `/comparar?mode=pais&a=chile&b=espana` Comparador con parámetros precargados.
 - `/comparar?mode=ciudad&a=madrid&b=barcelona` Comparador de ciudades precargado.
+- `/metodologia` Metodología editorial y uso de índices referenciales.
