@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { CuratedCompareCard } from "../components/CuratedCompareCard";
 import { FeaturedRankings } from "../components/FeaturedRankings";
 import { featuredRankings } from "../data/rankings";
 import { categories, categoryKeys } from "../lib/categories";
+import { getCuratedCompares, resolveCuratedCompare } from "../lib/curated-compares";
 import { buildMetadata } from "../lib/seo";
 
 export const metadata = buildMetadata({
@@ -12,6 +14,11 @@ export const metadata = buildMetadata({
 });
 
 export default function HomePage() {
+  const curatedComparisons = getCuratedCompares()
+    .map((compare) => resolveCuratedCompare(compare))
+    .filter((compare): compare is NonNullable<typeof compare> => Boolean(compare))
+    .slice(0, 6);
+
   return (
     <div className="space-y-16 py-12">
       <section className="container-page">
@@ -68,6 +75,22 @@ export default function HomePage() {
         </div>
         <FeaturedRankings rankings={featuredRankings} />
       </section>
+
+      {curatedComparisons.length ? (
+        <section className="container-page space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="section-title">Comparaciones recomendadas</h2>
+            <Link href="/comparar" className="link-muted">
+              Ver comparador
+            </Link>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {curatedComparisons.map((compare) => (
+              <CuratedCompareCard key={compare.slug} compare={compare} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section id="categorias" className="container-page space-y-6">
         <div className="flex items-center justify-between">

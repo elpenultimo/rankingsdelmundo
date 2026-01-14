@@ -3,7 +3,7 @@ import { getEntities } from "../data/entities";
 import { rankings } from "../data/rankings";
 import { rankingYears, regionKeys } from "../data/taxonomy";
 import { categoryKeys } from "../lib/categories";
-import { buildComparePairs, getTopCities, getTopCountries } from "../lib/compare";
+import { getCuratedCompares, resolveCuratedCompare } from "../lib/curated-compares";
 import { siteConfig } from "../lib/seo";
 import { topicKeys } from "../lib/topics";
 
@@ -71,15 +71,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date()
   }));
 
-  const compareCountryRoutes = buildComparePairs(getTopCountries(20), 190).map((slug) => ({
-    url: `${baseUrl}/comparar/pais/${slug}`,
-    lastModified: new Date()
-  }));
-
-  const compareCityRoutes = buildComparePairs(getTopCities(15), 105).map((slug) => ({
-    url: `${baseUrl}/comparar/ciudad/${slug}`,
-    lastModified: new Date()
-  }));
+  const curatedCompareRoutes = getCuratedCompares()
+    .map((compare) => resolveCuratedCompare(compare))
+    .filter((compare): compare is NonNullable<typeof compare> => Boolean(compare))
+    .map((compare) => ({
+      url: `${baseUrl}${compare.href}`,
+      lastModified: new Date()
+    }));
 
   return [
     ...staticRoutes,
@@ -91,7 +89,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...categoryRoutes,
     ...countryRoutes,
     ...cityRoutes,
-    ...compareCountryRoutes,
-    ...compareCityRoutes
+    ...curatedCompareRoutes
   ];
 }

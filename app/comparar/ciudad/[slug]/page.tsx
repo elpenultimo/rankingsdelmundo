@@ -15,6 +15,7 @@ import {
   getTopCities,
   metricPreferences
 } from "../../../../lib/compare";
+import { getCuratedCompares, resolveCuratedCompare } from "../../../../lib/curated-compares";
 import { buildCompareDetailPath, parseCompareSlug } from "../../../../lib/url";
 import { buildBreadcrumbs, buildFAQPage, buildMetadata, siteConfig } from "../../../../lib/seo";
 import { topics, type TopicKey } from "../../../../lib/topics";
@@ -61,7 +62,13 @@ const buildComparisonRows = (
 
 export const generateStaticParams = () => {
   const topCities = getTopCities(15);
-  return buildComparePairs(topCities, 105).map((slug) => ({ slug }));
+  const curated = getCuratedCompares("ciudad")
+    .map((compare) => resolveCuratedCompare(compare))
+    .filter((compare): compare is NonNullable<typeof compare> => Boolean(compare))
+    .map((compare) => compare.slug);
+  const autoPairs = buildComparePairs(topCities, 105);
+  const slugs = Array.from(new Set([...curated, ...autoPairs]));
+  return slugs.map((slug) => ({ slug }));
 };
 
 export const generateMetadata = async ({ params }: { params: { slug: string } }) => {
