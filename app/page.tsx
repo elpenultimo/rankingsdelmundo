@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FeaturedRankings } from "../components/FeaturedRankings";
-import { categories, featuredRankings } from "../data/rankings";
+import { featuredRankings } from "../data/rankings";
+import { categories, categoryKeys } from "../lib/categories";
 import { buildMetadata } from "../lib/seo";
 
 export const metadata = buildMetadata({
@@ -70,23 +71,23 @@ export default function HomePage() {
 
       <section id="categorias" className="container-page space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="section-title">Categorías</h2>
-          <Link href="/rankings" className="link-muted">
-            Explorar rankings
+          <h2 className="section-title">Explora por categorías</h2>
+          <Link href="/categorias" className="link-muted">
+            Ver todas
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
+          {categoryKeys.map((categoryKey) => (
             <Link
-              key={category.key}
-              href={`/rankings?cat=${category.key}`}
+              key={categoryKey}
+              href={`/categoria/${categoryKey}`}
               className="card p-6"
             >
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {category.label}
+                {categories[categoryKey].label}
               </h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                {category.description}
+                {categories[categoryKey].description}
               </p>
             </Link>
           ))}
