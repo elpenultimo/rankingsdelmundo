@@ -9,6 +9,13 @@ import {
   getTopCities,
   getTopCountries
 } from "../lib/compare";
+import { CuratedCompareCard } from "./CuratedCompareCard";
+import {
+  getCuratedCompares,
+  resolveCuratedCompare,
+  type ResolvedCuratedCompare
+} from "../lib/curated-compares";
+import { topics, type TopicKey } from "../lib/topics";
 import {
   buildCompareDetailPath,
   buildCompareLandingUrl,
@@ -105,6 +112,8 @@ export const CompareLanding = () => {
   const [queryA, setQueryA] = useState("");
   const [queryB, setQueryB] = useState("");
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [copyMessage, setCopyMessage] = useState("");
+  const [activeTopic, setActiveTopic] = useState<TopicKey>("seguridad");
   const didInit = useRef(false);
 
   const countryEntities = useMemo(() => getCountryEntities(), []);
@@ -189,6 +198,25 @@ export const CompareLanding = () => {
     router.push(buildCompareDetailPath(activeTab, selectionA.slug, selectionB.slug));
   };
 
+  const handleGenerateLink = () => {
+    if (!selectionA || !selectionB || isInvalidMatch) return;
+    const path = buildCompareDetailPath(activeTab, selectionA.slug, selectionB.slug);
+    const url = `${window.location.origin}${path}`;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          setCopyMessage("Link copiado.");
+          window.setTimeout(() => setCopyMessage(""), 2500);
+        })
+        .catch(() => {
+          window.prompt("Copia este link:", url);
+        });
+      return;
+    }
+    window.prompt("Copia este link:", url);
+  };
+
   const resetSelection = (
     setter: (value: CompareEntity | null) => void,
     otherSetter?: (value: CompareEntity | null) => void
@@ -249,6 +277,45 @@ export const CompareLanding = () => {
     }
     setSelectionB(entity);
     setQueryB(entity.name);
+  };
+
+  const curatedComparisons = useMemo(
+    () =>
+      getCuratedCompares()
+        .map((compare) => resolveCuratedCompare(compare))
+        .filter(Boolean) as ResolvedCuratedCompare[],
+    []
+  );
+
+  const popularCurated = useMemo(() => {
+    const popularCountries = curatedComparisons.filter((item) => item.mode === "pais").slice(0, 8);
+    const popularCities = curatedComparisons.filter((item) => item.mode === "ciudad").slice(0, 6);
+    return [...popularCountries, ...popularCities];
+  }, [curatedComparisons]);
+
+  const topicTabs: TopicKey[] = [
+    "seguridad",
+    "costo-de-vida",
+    "calidad-de-vida",
+    "clima",
+    "impuestos"
+  ];
+
+  const topicRecommendations = useMemo(
+    () =>
+      curatedComparisons
+        .filter((item) => item.mode === activeTab && item.topics.includes(activeTopic))
+        .slice(0, 8),
+    [activeTab, activeTopic, curatedComparisons]
+  );
+
+  const handleSurprise = () => {
+    const pool = topicRecommendations.length
+      ? topicRecommendations
+      : curatedComparisons.filter((item) => item.mode === activeTab);
+    if (!pool.length) return;
+    const selection = pool[Math.floor(Math.random() * pool.length)];
+    router.push(selection.href);
   };
 
   return (
@@ -334,14 +401,26 @@ export const CompareLanding = () => {
           </p>
         ) : null}
 
-        <button
-          type="button"
-          onClick={handleCompare}
-          disabled={!selectionA || !selectionB || isInvalidMatch}
-          className="inline-flex items-center justify-center rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          Ver comparación
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleCompare}
+            disabled={!selectionA || !selectionB || isInvalidMatch}
+            className="inline-flex items-center justify-center rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            Ver comparación
+          </button>
+          <button
+            type="button"
+            onClick={handleGenerateLink}
+            disabled={!selectionA || !selectionB || isInvalidMatch}
+            className="inline-flex items-center justify-center rounded-full border border-brand-200 px-6 py-2 text-sm font-semibold text-brand-600 shadow-sm transition hover:border-brand-300 hover:text-brand-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 dark:border-brand-500/40 dark:text-brand-200"
+          >
+            Generar link
+          </button>
+        </div>
+
+        {copyMessage ? <p className="text-xs text-emerald-600">{copyMessage}</p> : null}
 
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
           <div className="space-y-2">
@@ -384,6 +463,57 @@ export const CompareLanding = () => {
           </div>
         </div>
 
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="section-title">🔥 Populares</h2>
+          <p className="text-xs text-slate-500">Selección editorial destacada</p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {popularCurated.map((compare) => (
+            <CuratedCompareCard key={compare.slug} compare={compare} />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="section-title">Recomendadas por tema</h2>
+            <p className="text-xs text-slate-500">
+              Curadas para {activeTab === "pais" ? "países" : "ciudades"}.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSurprise}
+            className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:text-slate-300"
+          >
+            Sorpréndeme
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {topicTabs.map((topicKey) => (
+            <button
+              key={topicKey}
+              type="button"
+              onClick={() => setActiveTopic(topicKey)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                activeTopic === topicKey
+                  ? "bg-brand-600 text-white"
+                  : "border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:text-slate-300"
+              }`}
+            >
+              {topics[topicKey].label}
+            </button>
+          ))}
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {topicRecommendations.map((compare) => (
+            <CuratedCompareCard key={compare.slug} compare={compare} />
+          ))}
+        </div>
       </section>
     </div>
   );

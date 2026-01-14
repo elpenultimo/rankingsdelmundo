@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CuratedCompareCard } from "../../../components/CuratedCompareCard";
 import { RankingCard } from "../../../components/RankingCard";
 import { rankings } from "../../../data/rankings";
 import {
@@ -9,6 +10,11 @@ import {
   getTopCities,
   getTopCountries
 } from "../../../lib/compare";
+import {
+  getCuratedCompares,
+  resolveCuratedCompare,
+  type ResolvedCuratedCompare
+} from "../../../lib/curated-compares";
 import { getRankingsForTopic } from "../../../lib/topic-discovery";
 import { topics, topicKeys, type TopicKey } from "../../../lib/topics";
 import { buildBreadcrumbs, buildFAQPage, buildMetadata, siteConfig } from "../../../lib/seo";
@@ -194,7 +200,21 @@ export default function TopicHubPage({ params }: { params: { topic: string } }) 
   const searchQuery = config.label.toLowerCase();
 
   const recommendedRankings = getRankingsForTopic(topicKey, 20);
-  const comparisons = buildTopicComparisons(config.metricKeys, 6);
+  const curatedTopicComparisons = getCuratedCompares()
+    .map((compare) => resolveCuratedCompare(compare))
+    .filter((compare): compare is ResolvedCuratedCompare => Boolean(compare))
+    .filter((compare) => compare.topics.includes(topicKey));
+  const curatedSelection = curatedTopicComparisons.slice(0, 6);
+  const curatedKeys = new Set(
+    curatedSelection.map((compare) => `${compare.mode}-${compare.slug}`)
+  );
+  const fallbackComparisons = buildTopicComparisons(config.metricKeys, 6)
+    .filter((comparison) => !curatedKeys.has(`${comparison.type}-${comparison.slug}`))
+    .slice(0, Math.max(0, 6 - curatedSelection.length));
+  const comparisonCards = [
+    ...curatedSelection.map((compare) => ({ type: "curated" as const, compare })),
+    ...fallbackComparisons.map((comparison) => ({ type: "auto" as const, comparison }))
+  ];
   const featuredCountries = buildEntityHighlights("pais", config.metricKeys, 12);
   const featuredCities = buildEntityHighlights("ciudad", config.metricKeys, 12);
 
@@ -257,7 +277,7 @@ export default function TopicHubPage({ params }: { params: { topic: string } }) 
         </div>
       </section>
 
-      {comparisons.length ? (
+      {comparisonCards.length ? (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="section-title">Comparaciones populares sobre {config.label}</h2>
@@ -266,20 +286,24 @@ export default function TopicHubPage({ params }: { params: { topic: string } }) 
             </Link>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {comparisons.map((comparison) => (
-              <Link
-                key={`${comparison.type}-${comparison.slug}`}
-                href={`/comparar/${comparison.type}/${comparison.slug}`}
-                className="card p-4"
-              >
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                  {comparison.label}
-                </h3>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                  Comparación referencial basada en métricas asociadas al tema.
-                </p>
-              </Link>
-            ))}
+            {comparisonCards.map((item) =>
+              item.type === "curated" ? (
+                <CuratedCompareCard key={item.compare.slug} compare={item.compare} />
+              ) : (
+                <Link
+                  key={`${item.comparison.type}-${item.comparison.slug}`}
+                  href={`/comparar/${item.comparison.type}/${item.comparison.slug}`}
+                  className="card p-4"
+                >
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    {item.comparison.label}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                    Comparación referencial basada en métricas asociadas al tema.
+                  </p>
+                </Link>
+              )
+            )}
           </div>
         </section>
       ) : null}

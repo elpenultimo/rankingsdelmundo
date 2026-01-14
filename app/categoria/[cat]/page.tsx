@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CuratedCompareCard } from "../../../components/CuratedCompareCard";
 import { RankingCard } from "../../../components/RankingCard";
 import { featuredRankings, rankings } from "../../../data/rankings";
 import { rankingYears, regionKeys } from "../../../data/taxonomy";
@@ -12,6 +13,11 @@ import {
   getCategoryIntro,
   getCategoryLabel
 } from "../../../lib/categories";
+import {
+  getCuratedCompares,
+  resolveCuratedCompare,
+  type ResolvedCuratedCompare
+} from "../../../lib/curated-compares";
 import { buildBreadcrumbs, buildFAQPage, buildMetadata, siteConfig } from "../../../lib/seo";
 import { regionLabels } from "../../../lib/regions";
 import { topicKeys, topics } from "../../../lib/topics";
@@ -101,6 +107,19 @@ export default function CategoryHubPage({ params }: { params: { cat: string } })
       };
     })
     .filter(Boolean) as { slug: string; label: string }[];
+
+  const curatedComparisons = getCuratedCompares(compareType)
+    .map((compare) => resolveCuratedCompare(compare))
+    .filter((compare): compare is ResolvedCuratedCompare => Boolean(compare));
+  const curatedSelection = curatedComparisons.slice(0, 6);
+  const curatedSlugs = new Set(curatedSelection.map((compare) => compare.slug));
+  const fallbackSelection = compareLinks
+    .filter((link) => !curatedSlugs.has(link.slug))
+    .slice(0, Math.max(0, 6 - curatedSelection.length));
+  const compareCards = [
+    ...curatedSelection.map((compare) => ({ type: "curated" as const, compare })),
+    ...fallbackSelection.map((link) => ({ type: "auto" as const, link }))
+  ];
 
   const popularEntities = topEntities.slice(0, 12);
   const otherCategories = categoryKeys.filter((key) => key !== categoryKey);
@@ -234,7 +253,7 @@ export default function CategoryHubPage({ params }: { params: { cat: string } })
         </div>
       </section>
 
-      {compareLinks.length ? (
+      {compareCards.length ? (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="section-title">Comparaciones populares</h2>
@@ -243,16 +262,24 @@ export default function CategoryHubPage({ params }: { params: { cat: string } })
             </Link>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {compareLinks.map((link) => (
-              <Link key={link.slug} href={`/comparar/${compareType}/${link.slug}`} className="card p-4">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                  {link.label}
-                </h3>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                  Comparativa rápida con índices referenciales.
-                </p>
-              </Link>
-            ))}
+            {compareCards.map((item) =>
+              item.type === "curated" ? (
+                <CuratedCompareCard key={item.compare.slug} compare={item.compare} />
+              ) : (
+                <Link
+                  key={item.link.slug}
+                  href={`/comparar/${compareType}/${item.link.slug}`}
+                  className="card p-4"
+                >
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    {item.link.label}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                    Comparativa rápida con índices referenciales.
+                  </p>
+                </Link>
+              )
+            )}
           </div>
         </section>
       ) : null}
