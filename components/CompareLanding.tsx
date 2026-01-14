@@ -16,6 +16,7 @@ import {
   parseCompareSlug,
   type CompareMode
 } from "../lib/url";
+import { trackEvent } from "../lib/metrics/client";
 
 type CompareEntity = {
   name: string;
@@ -186,6 +187,9 @@ export const CompareLanding = () => {
 
   const handleCompare = () => {
     if (!selectionA || !selectionB || isInvalidMatch) return;
+    const slug = `${selectionA.slug}-vs-${selectionB.slug}`;
+    const scope = activeTab === "pais" ? "compare_pais" : "compare_ciudad";
+    trackEvent("compare", scope, slug);
     router.push(buildCompareDetailPath(activeTab, selectionA.slug, selectionB.slug));
   };
 

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CompareDetail, type ComparisonRow } from "../../../../components/CompareDetail";
+import { TrackView } from "../../../../components/TrackView";
 import { getEntityBySlug } from "../../../../data/entities";
 import { rankings } from "../../../../data/rankings";
 import {
@@ -134,23 +135,26 @@ export default function CityComparePage({ params }: { params: { slug: string } }
   const topicLinks = buildTopicLinks(rows, 3);
 
   return (
-    <CompareDetail
-      compareMode="ciudad"
-      entityTypeLabel="Ciudad"
-      entityA={entityA}
-      entityB={entityB}
-      introText={introText}
-      summaryText={summaryText}
-      rows={rows}
-      rankingsA={entityA.rankings}
-      rankingsB={entityB.rankings}
-      relatedRankings={relatedRankings}
-      similarComparisons={similarComparisons}
-      topicLinks={topicLinks}
-      faq={compareFaq}
-      breadcrumbs={breadcrumbs}
-      faqSchema={faqSchema}
-      itemListSchema={itemListSchema}
-    />
+    <>
+      <TrackView scope="compare_ciudad" slug={params.slug} />
+      <CompareDetail
+        compareMode="ciudad"
+        entityTypeLabel="Ciudad"
+        entityA={entityA}
+        entityB={entityB}
+        introText={introText}
+        summaryText={summaryText}
+        rows={rows}
+        rankingsA={entityA.rankings}
+        rankingsB={entityB.rankings}
+        relatedRankings={relatedRankings}
+        similarComparisons={similarComparisons}
+        topicLinks={topicLinks}
+        faq={compareFaq}
+        breadcrumbs={breadcrumbs}
+        faqSchema={faqSchema}
+        itemListSchema={itemListSchema}
+      />
+    </>
   );
 }

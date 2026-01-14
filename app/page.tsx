@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { FeaturedRankings } from "../components/FeaturedRankings";
+import { TrackView } from "../components/TrackView";
+import { TrendingList } from "../components/TrendingList";
 import { featuredRankings } from "../data/rankings";
 import { categories, categoryKeys } from "../lib/categories";
+import { getMostViewedRankings, getTrendingCompares, getTrendingRankings } from "../lib/metrics/trending";
 import { buildMetadata } from "../lib/seo";
 
 export const metadata = buildMetadata({
@@ -11,9 +14,16 @@ export const metadata = buildMetadata({
   path: "/"
 });
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [trendingRankings, trendingCompares, mostViewed] = await Promise.all([
+    getTrendingRankings(7, 6),
+    getTrendingCompares(7, 4),
+    getMostViewedRankings(30, 8)
+  ]);
+
   return (
     <div className="space-y-16 py-12">
+      <TrackView scope="home" slug="home" />
       <section className="container-page">
         <div className="grid gap-10 rounded-3xl border border-slate-200 bg-white px-8 py-12 shadow-soft dark:border-slate-800 dark:bg-slate-900 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
@@ -68,6 +78,39 @@ export default function HomePage() {
         </div>
         <FeaturedRankings rankings={featuredRankings} />
       </section>
+
+      {(trendingRankings.length || trendingCompares.length) && (
+        <section className="container-page space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
+              🔥 Trending esta semana
+            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Rankings y comparaciones con más actividad en los últimos 7 días.
+            </p>
+          </div>
+          {trendingRankings.length ? (
+            <TrendingList title="Rankings en tendencia" items={trendingRankings} columns={2} />
+          ) : null}
+          {trendingCompares.length ? (
+            <TrendingList title="Comparaciones destacadas" items={trendingCompares} columns={2} />
+          ) : null}
+        </section>
+      )}
+
+      {mostViewed.length ? (
+        <section className="container-page space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
+              📈 Más vistos (30 días)
+            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Los rankings más consultados del último mes.
+            </p>
+          </div>
+          <TrendingList title="Rankings más vistos" items={mostViewed} columns={2} />
+        </section>
+      ) : null}
 
       <section id="categorias" className="container-page space-y-6">
         <div className="flex items-center justify-between">

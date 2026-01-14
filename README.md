@@ -28,6 +28,26 @@ npm run build
 npm run start
 ```
 
+## Analítica interna (Vercel KV opcional)
+
+El sitio usa métricas internas anónimas para contar vistas y acciones agregadas por slug
+(sin IPs, sin cookies de tracking, sin user agents). En producción se recomienda habilitar
+Vercel KV para persistencia; si no está configurado, el sistema usa un storage in-memory
+solo para desarrollo y no rompe el build.
+
+### Configurar Vercel KV
+
+1. Instala la dependencia:
+   ```bash
+   npm install @vercel/kv
+   ```
+2. Crea una base KV en el dashboard de Vercel.
+3. Agrega las variables de entorno:
+   - `KV_REST_API_URL`
+   - `KV_REST_API_TOKEN`
+
+Sin estas variables, el conteo funciona en memoria local sin persistencia.
+
 ## OG images (QA)
 
 Prueba las rutas de Open Graph en local con `npm run dev`:

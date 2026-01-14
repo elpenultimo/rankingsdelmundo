@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { RankingTemplate } from "../../../components/RankingTemplate";
+import { TrackView } from "../../../components/TrackView";
 import { rankings, getRankingBySlug } from "../../../data/rankings";
 import {
   buildBreadcrumbs,
@@ -10,6 +11,7 @@ import {
 } from "../../../lib/seo";
 import { getTopicsForRanking } from "../../../lib/topic-discovery";
 import { topics } from "../../../lib/topics";
+import { buildRankingMetricSlug } from "../../../lib/metrics/utils";
 
 export const generateMetadata = async ({ params }: { params: { slug: string } }) => {
   const ranking = getRankingBySlug(params.slug);
@@ -40,16 +42,19 @@ export default function RankingPage({ params }: { params: { slug: string } }) {
   const itemListSchema = buildItemList(ranking);
 
   return (
-    <RankingTemplate
-      ranking={ranking}
-      items={ranking.items}
-      pageTitle={ranking.title}
-      description={ranking.description}
-      related={related}
-      relatedTopics={relatedTopics}
-      breadcrumbs={breadcrumbs}
-      faqSchema={faqSchema}
-      itemListSchema={itemListSchema}
-    />
+    <>
+      <TrackView scope="ranking" slug={buildRankingMetricSlug({ slug: ranking.slug })} />
+      <RankingTemplate
+        ranking={ranking}
+        items={ranking.items}
+        pageTitle={ranking.title}
+        description={ranking.description}
+        related={related}
+        relatedTopics={relatedTopics}
+        breadcrumbs={breadcrumbs}
+        faqSchema={faqSchema}
+        itemListSchema={itemListSchema}
+      />
+    </>
   );
 }

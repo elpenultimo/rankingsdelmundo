@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RankingCard } from "../../../components/RankingCard";
+import { TrackView } from "../../../components/TrackView";
 import { featuredRankings, rankings } from "../../../data/rankings";
 import { rankingYears, regionKeys } from "../../../data/taxonomy";
 import { buildComparePairs, getTopCities, getTopCountries } from "../../../lib/compare";
@@ -117,6 +118,7 @@ export default function CategoryHubPage({ params }: { params: { cat: string } })
 
   return (
     <div className="container-page space-y-12 py-12">
+      <TrackView scope="categoria" slug={categoryKey} />
       <header className="space-y-4">
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Hub</p>
         <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">

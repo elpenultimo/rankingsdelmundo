@@ -4,6 +4,9 @@ export const Footer = () => (
       <div>
         <p className="font-medium text-slate-700 dark:text-slate-200">Rankings del Mundo</p>
         <p>Curaduría editorial de rankings globales en español.</p>
+        <p className="text-xs text-slate-400">
+          Métricas internas anónimas: solo contamos visitas y clics agregados por ranking.
+        </p>
       </div>
       <div className="space-y-1">
         <p>Contacto: hola@rankingsdelmundo.com</p>

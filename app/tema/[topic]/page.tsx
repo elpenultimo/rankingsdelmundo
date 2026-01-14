@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RankingCard } from "../../../components/RankingCard";
+import { TrackView } from "../../../components/TrackView";
 import { rankings } from "../../../data/rankings";
 import {
   buildComparePairs,
@@ -209,6 +210,7 @@ export default function TopicHubPage({ params }: { params: { topic: string } }) 
 
   return (
     <div className="container-page space-y-12 py-12">
+      <TrackView scope="tema" slug={topicKey} />
       <header className="space-y-4">
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Tema</p>
         <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
