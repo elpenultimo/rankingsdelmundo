@@ -3,6 +3,7 @@ import Link from "next/link";
 import { RelatedRankings } from "../../../components/RelatedRankings";
 import { getEntities, getEntityBySlug } from "../../../data/entities";
 import { rankings } from "../../../data/rankings";
+import { getTopCountries } from "../../../lib/compare";
 import { buildBreadcrumbs, buildMetadata, siteConfig } from "../../../lib/seo";
 
 export const generateStaticParams = () =>
@@ -30,6 +31,9 @@ export default function CountryPage({ params }: { params: { slug: string } }) {
   const related = rankings.filter(
     (ranking) => !rankingList.find((entry) => entry.slug === ranking.slug) && categorySet.has(ranking.category)
   );
+  const compareSuggestions = getTopCountries(6)
+    .filter((item) => item.slug !== entity.slug)
+    .slice(0, 4);
 
   const breadcrumbs = buildBreadcrumbs([
     { name: "Inicio", url: siteConfig.url },
@@ -65,6 +69,26 @@ export default function CountryPage({ params }: { params: { slug: string } }) {
       <section className="space-y-4">
         <h2 className="section-title">Rankings relacionados</h2>
         <RelatedRankings rankings={related.slice(0, 6)} />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="section-title">Comparar con...</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {compareSuggestions.map((suggestion) => (
+            <Link
+              key={suggestion.slug}
+              href={`/comparar/pais/${entity.slug}-vs-${suggestion.slug}`}
+              className="card p-4"
+            >
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                {entity.name} vs {suggestion.name}
+              </h3>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                Comparativa rápida con índices referenciales.
+              </p>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <script
