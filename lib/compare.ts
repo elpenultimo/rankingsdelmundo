@@ -107,7 +107,10 @@ const defaultDefinition = (ranking: Ranking): MetricDefinition => ({
   priority: categoryPriority[ranking.category] ?? 1
 });
 
-const parseNumericValue = (rawValue: string): number | null => {
+const parseNumericValue = (rawValue: number | string): number | null => {
+  if (typeof rawValue === "number") {
+    return Number.isFinite(rawValue) ? rawValue : null;
+  }
   const normalized = rawValue.replace(",", ".").replace(/\s+/g, " ");
   const match = normalized.match(/-?\d+(\.\d+)?/);
   if (!match) return null;

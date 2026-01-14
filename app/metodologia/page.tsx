@@ -67,6 +67,10 @@ export default function MetodologiaPage() {
           <Link href="/categorias" className="font-semibold text-brand-600">
             Ver categorías
           </Link>
+          <span className="text-slate-400">·</span>
+          <Link href="/fuentes" className="font-semibold text-brand-600">
+            Ver fuentes
+          </Link>
         </div>
       </section>
 
