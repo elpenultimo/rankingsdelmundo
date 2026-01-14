@@ -28,6 +28,18 @@ npm run build
 npm run start
 ```
 
+## OG images (QA)
+
+Prueba las rutas de Open Graph en local con `npm run dev`:
+
+- `/opengraph-image`
+- `/ranking/[slug]/opengraph-image`
+- `/ranking/[slug]/anio/[year]/opengraph-image`
+- `/ranking/[slug]/region/[region]/opengraph-image`
+- `/ranking/[slug]/region/[region]/anio/[year]/opengraph-image`
+- `/comparar/pais/[a]-vs-[b]/opengraph-image`
+- `/comparar/ciudad/[a]-vs-[b]/opengraph-image`
+
 ## Despliegue en Vercel
 
 1. Conecta el repositorio a Vercel.
