@@ -58,3 +58,24 @@ Los rankings viven en `data/rankings.ts`. Por ahora no hay base de datos y los d
 - `/comparar/ciudad/[a]-vs-[b]` Comparativa entre ciudades.
 - `/comparar?mode=pais&a=chile&b=espana` Comparador con parámetros precargados.
 - `/comparar?mode=ciudad&a=madrid&b=barcelona` Comparador de ciudades precargado.
+
+## Embed de comparaciones
+
+Puedes generar un widget embebible desde `/embed`, configurando modo, entidades, variante y tema.
+
+- `/embed` Generador de iframe con preview.
+- `/embed/pais/[a]-vs-[b]` Vista embebible para países.
+- `/embed/ciudad/[a]-vs-[b]` Vista embebible para ciudades.
+
+Ejemplo de iframe:
+
+```html
+<iframe
+  src="https://rankingsdelmundo.com/embed/pais/chile-vs-espana?variant=compact&theme=auto"
+  width="100%"
+  height="260"
+  style="border:0;border-radius:16px;overflow:hidden"
+  loading="lazy"
+  referrerpolicy="no-referrer-when-downgrade"
+></iframe>
+```
