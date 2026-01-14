@@ -31,7 +31,8 @@ export const buildMetadata = (options: {
       card: "summary_large_image",
       title: options.title,
       description: options.description,
-      creator: siteConfig.twitterHandle
+      creator: siteConfig.twitterHandle,
+      site: siteConfig.twitterHandle
     }
   };
 };
