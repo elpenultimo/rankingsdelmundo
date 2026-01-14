@@ -1,5 +1,5 @@
 import { toSlug } from "./slug";
-import { getEntities, getEntityBySlug } from "../data/entities";
+import { getEntities, getEntityBySlug, getRegionForCountryName } from "../data/entities";
 import type { Ranking } from "../data/rankings";
 
 export type Metric = {
@@ -204,4 +204,69 @@ export const buildComparePairs = (
     }
   }
   return pairs;
+};
+
+export type CompareSuggestion = {
+  a: { name: string; slug: string };
+  b: { name: string; slug: string };
+};
+
+export const getSuggestedComparisons = (
+  type: "pais" | "ciudad",
+  entityA: { name: string; slug: string },
+  entityB: { name: string; slug: string },
+  limit = 6
+): CompareSuggestion[] => {
+  const suggestions: CompareSuggestion[] = [];
+  const seen = new Set<string>();
+  const originalKey = [entityA.slug, entityB.slug].sort().join("|");
+
+  const addPair = (a: { name: string; slug: string }, b: { name: string; slug: string }) => {
+    if (a.slug === b.slug) return;
+    const key = [a.slug, b.slug].sort().join("|");
+    if (key === originalKey || seen.has(key)) return;
+    seen.add(key);
+    suggestions.push({ a, b });
+  };
+
+  const list = type === "pais" ? getTopCountries(24) : getTopCities(24);
+
+  const addFromList = (seed: { name: string; slug: string }, candidates: typeof list) => {
+    for (const candidate of candidates) {
+      if (suggestions.length >= limit) return;
+      if (candidate.slug === seed.slug) continue;
+      addPair(seed, candidate);
+    }
+  };
+
+  if (type === "pais") {
+    const regionA = getRegionForCountryName(entityA.name);
+    const regionB = getRegionForCountryName(entityB.name);
+    if (regionA) {
+      const sameRegion = list.filter(
+        (entity) => getRegionForCountryName(entity.name) === regionA
+      );
+      addFromList(entityA, sameRegion);
+    }
+    if (regionB && regionB !== regionA) {
+      const sameRegion = list.filter(
+        (entity) => getRegionForCountryName(entity.name) === regionB
+      );
+      addFromList(entityB, sameRegion);
+    }
+  }
+
+  addFromList(entityA, list);
+  addFromList(entityB, list);
+
+  if (suggestions.length < limit) {
+    for (let i = 0; i < list.length; i += 1) {
+      for (let j = i + 1; j < list.length; j += 1) {
+        if (suggestions.length >= limit) break;
+        addPair(list[i], list[j]);
+      }
+    }
+  }
+
+  return suggestions.slice(0, limit);
 };
