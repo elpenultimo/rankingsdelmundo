@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { RelatedRankings } from "./RelatedRankings";
+import { ShareBar } from "./ShareBar";
 import type { Ranking } from "../data/rankings";
+import type { CompareMode } from "../lib/url";
 
 export type ComparisonRow = {
   key: string;
@@ -11,6 +13,7 @@ export type ComparisonRow = {
 };
 
 type CompareDetailProps = {
+  compareMode: CompareMode;
   entityTypeLabel: string;
   entityA: { name: string; slug: string };
   entityB: { name: string; slug: string };
@@ -20,6 +23,7 @@ type CompareDetailProps = {
   rankingsA: Ranking[];
   rankingsB: Ranking[];
   relatedRankings: Ranking[];
+  similarComparisons: Array<{ label: string; href: string }>;
   faq: { q: string; a: string }[];
   breadcrumbs: object;
   faqSchema: object;
@@ -50,6 +54,7 @@ const resolveWinner = (
 };
 
 export const CompareDetail = ({
+  compareMode,
   entityTypeLabel,
   entityA,
   entityB,
@@ -59,6 +64,7 @@ export const CompareDetail = ({
   rankingsA,
   rankingsB,
   relatedRankings,
+  similarComparisons,
   faq,
   breadcrumbs,
   faqSchema,
@@ -77,6 +83,12 @@ export const CompareDetail = ({
         <p className="font-semibold text-brand-700 dark:text-brand-100">Resumen rápido</p>
         <p className="mt-1">{summaryText}</p>
       </div>
+      <ShareBar
+        mode={compareMode}
+        entityA={entityA}
+        entityB={entityB}
+        className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950"
+      />
     </section>
 
     <section className="space-y-4">
@@ -113,6 +125,14 @@ export const CompareDetail = ({
         Las métricas son índices referenciales derivados de rankings internos y no reemplazan
         fuentes oficiales.
       </p>
+    </section>
+
+    <section className="space-y-4">
+      <h2 className="section-title">Comparte esta comparación</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-300">
+        Ayuda a otros viajeros a decidir con esta comparativa rápida y directa.
+      </p>
+      <ShareBar mode={compareMode} entityA={entityA} entityB={entityB} />
     </section>
 
     <section className="grid gap-6 lg:grid-cols-2">
@@ -156,6 +176,22 @@ export const CompareDetail = ({
       </div>
     </section>
 
+    {similarComparisons.length ? (
+      <section className="space-y-4">
+        <h2 className="section-title">Comparaciones similares</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {similarComparisons.map((item) => (
+            <Link key={item.href} href={item.href} className="card p-4">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{item.label}</h3>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                Comparación sugerida por popularidad y región.
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+    ) : null}
+
     <section className="space-y-4">
       <h2 className="section-title">Preguntas frecuentes</h2>
       <div className="grid gap-4 md:grid-cols-2">
@@ -167,6 +203,8 @@ export const CompareDetail = ({
         ))}
       </div>
     </section>
+
+    <ShareBar mode={compareMode} entityA={entityA} entityB={entityB} />
 
     <script
       type="application/ld+json"

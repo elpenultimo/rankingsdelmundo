@@ -1,8 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getCityEntities, getCountryEntities } from "../lib/compare";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  buildComparePairs,
+  getCityEntities,
+  getCountryEntities,
+  getTopCities,
+  getTopCountries
+} from "../lib/compare";
+import {
+  buildCompareDetailPath,
+  buildCompareLandingUrl,
+  isCompareMode,
+  parseCompareSlug,
+  type CompareMode
+} from "../lib/url";
 
 type CompareEntity = {
   name: string;
@@ -48,6 +61,14 @@ const CompareSelector = ({
         type="search"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          const firstMatch = filtered[0];
+          if (firstMatch) {
+            event.preventDefault();
+            onSelect(firstMatch);
+          }
+        }}
         placeholder="Buscar entidad..."
         className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
       />
@@ -77,27 +98,157 @@ const CompareSelector = ({
 
 export const CompareLanding = () => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"pais" | "ciudad">("pais");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<CompareMode>("pais");
   const [selectionA, setSelectionA] = useState<CompareEntity | null>(null);
   const [selectionB, setSelectionB] = useState<CompareEntity | null>(null);
   const [queryA, setQueryA] = useState("");
   const [queryB, setQueryB] = useState("");
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const didInit = useRef(false);
+
+  const countryEntities = useMemo(() => getCountryEntities(), []);
+  const cityEntities = useMemo(() => getCityEntities(), []);
 
   const entities = useMemo(
-    () => (activeTab === "pais" ? getCountryEntities() : getCityEntities()),
-    [activeTab]
+    () => (activeTab === "pais" ? countryEntities : cityEntities),
+    [activeTab, cityEntities, countryEntities]
   );
+
+  const entityMap = useMemo(() => new Map(entities.map((entity) => [entity.slug, entity])), [
+    entities
+  ]);
+
+  useEffect(() => {
+    const modeParam = searchParams.get("mode");
+    const nextMode = isCompareMode(modeParam) ? modeParam : "pais";
+    const nextEntities = nextMode === "pais" ? countryEntities : cityEntities;
+    const aParam = searchParams.get("a");
+    const bParam = searchParams.get("b");
+    const nextA = aParam ? nextEntities.find((entity) => entity.slug === aParam) ?? null : null;
+    const nextB = bParam ? nextEntities.find((entity) => entity.slug === bParam) ?? null : null;
+
+    if (activeTab !== nextMode) {
+      setActiveTab(nextMode);
+    }
+
+    if ((selectionA?.slug ?? null) !== (nextA?.slug ?? null)) {
+      setSelectionA(nextA);
+    }
+
+    if ((selectionB?.slug ?? null) !== (nextB?.slug ?? null)) {
+      setSelectionB(nextB);
+    }
+
+    if (!didInit.current) {
+      setQueryA(nextA?.name ?? "");
+      setQueryB(nextB?.name ?? "");
+      didInit.current = true;
+      return;
+    }
+
+    if (nextA) {
+      setQueryA(nextA.name);
+    } else if (selectionA) {
+      setQueryA("");
+    }
+
+    if (nextB) {
+      setQueryB(nextB.name);
+    } else if (selectionB) {
+      setQueryB("");
+    }
+  }, [activeTab, cityEntities, countryEntities, searchParams, selectionA, selectionB]);
+
+  useEffect(() => {
+    const shouldSync =
+      hasUserInteracted ||
+      searchParams.has("mode") ||
+      searchParams.has("a") ||
+      searchParams.has("b");
+    if (!shouldSync) return;
+
+    const params = new URLSearchParams();
+    if (activeTab !== "pais" || hasUserInteracted || searchParams.has("mode")) {
+      params.set("mode", activeTab);
+    }
+    if (selectionA) params.set("a", selectionA.slug);
+    if (selectionB) params.set("b", selectionB.slug);
+    const nextQuery = params.toString();
+    const currentQuery = searchParams.toString();
+    if (nextQuery !== currentQuery) {
+      router.replace(nextQuery ? `/comparar?${nextQuery}` : "/comparar", { scroll: false });
+    }
+  }, [activeTab, hasUserInteracted, router, searchParams, selectionA, selectionB]);
 
   const isInvalidMatch =
     selectionA && selectionB ? selectionA.slug === selectionB.slug : false;
 
   const handleCompare = () => {
     if (!selectionA || !selectionB || isInvalidMatch) return;
-    router.push(`/comparar/${activeTab}/${selectionA.slug}-vs-${selectionB.slug}`);
+    router.push(buildCompareDetailPath(activeTab, selectionA.slug, selectionB.slug));
   };
 
-  const resetSelection = (setter: (value: CompareEntity | null) => void) => {
+  const resetSelection = (
+    setter: (value: CompareEntity | null) => void,
+    otherSetter?: (value: CompareEntity | null) => void
+  ) => {
     setter(null);
+    if (otherSetter) {
+      otherSetter(null);
+    }
+  };
+
+  const popularEntities = useMemo(
+    () => (activeTab === "pais" ? getTopCountries(8) : getTopCities(8)),
+    [activeTab]
+  );
+
+  const popularExamples = useMemo(() => {
+    const list = activeTab === "pais" ? getTopCountries(10) : getTopCities(10);
+    return buildComparePairs(list, 6)
+      .map((slug) => {
+        const parsed = parseCompareSlug(slug);
+        if (!parsed) return null;
+        const entityA = entityMap.get(parsed.aSlug);
+        const entityB = entityMap.get(parsed.bSlug);
+        if (!entityA || !entityB) return null;
+        return {
+          a: entityA,
+          b: entityB,
+          label: `${entityA.name} vs ${entityB.name}`
+        };
+      })
+      .filter(Boolean) as Array<{ a: CompareEntity; b: CompareEntity; label: string }>;
+  }, [activeTab, entityMap]);
+
+  const handleExampleSelect = (example: { a: CompareEntity; b: CompareEntity }) => {
+    setHasUserInteracted(true);
+    setActiveTab(activeTab);
+    setSelectionA(example.a);
+    setSelectionB(example.b);
+    setQueryA(example.a.name);
+    setQueryB(example.b.name);
+    router.replace(
+      buildCompareLandingUrl({ mode: activeTab, aSlug: example.a.slug, bSlug: example.b.slug }),
+      { scroll: false }
+    );
+  };
+
+  const handleQuickFill = (entity: CompareEntity) => {
+    setHasUserInteracted(true);
+    if (!selectionA) {
+      setSelectionA(entity);
+      setQueryA(entity.name);
+      return;
+    }
+    if (!selectionB) {
+      setSelectionB(entity);
+      setQueryB(entity.name);
+      return;
+    }
+    setSelectionB(entity);
+    setQueryB(entity.name);
   };
 
   return (
@@ -125,9 +276,9 @@ export const CompareLanding = () => {
               key={tab.id}
               type="button"
               onClick={() => {
-                setActiveTab(tab.id as "pais" | "ciudad");
-                setSelectionA(null);
-                setSelectionB(null);
+                setHasUserInteracted(true);
+                setActiveTab(tab.id as CompareMode);
+                resetSelection(setSelectionA, setSelectionB);
                 setQueryA("");
                 setQueryB("");
               }}
@@ -154,6 +305,7 @@ export const CompareLanding = () => {
             }}
             selectedSlug={selectionA?.slug ?? ""}
             onSelect={(entity) => {
+              setHasUserInteracted(true);
               setSelectionA(entity);
               setQueryA(entity.name);
             }}
@@ -169,6 +321,7 @@ export const CompareLanding = () => {
             }}
             selectedSlug={selectionB?.slug ?? ""}
             onSelect={(entity) => {
+              setHasUserInteracted(true);
               setSelectionB(entity);
               setQueryB(entity.name);
             }}
@@ -187,8 +340,50 @@ export const CompareLanding = () => {
           disabled={!selectionA || !selectionB || isInvalidMatch}
           className="inline-flex items-center justify-center rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
-          Comparar ahora
+          Ver comparación
         </button>
+
+        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Sugerencias rápidas
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {popularEntities.map((entity) => (
+                <button
+                  key={entity.slug}
+                  type="button"
+                  onClick={() => handleQuickFill(entity)}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-brand-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {entity.name}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-500">
+              Haz clic para completar {selectionA ? "B" : "A"} rápidamente.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Ejemplos populares
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {popularExamples.map((example) => (
+                <button
+                  key={example.label}
+                  type="button"
+                  onClick={() => handleExampleSelect(example)}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-brand-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {example.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
       </section>
     </div>
   );

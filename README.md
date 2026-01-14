@@ -56,3 +56,5 @@ Los rankings viven en `data/rankings.ts`. Por ahora no hay base de datos y los d
 - `/comparar` Home de comparaciones.
 - `/comparar/pais/[a]-vs-[b]` Comparativa entre países.
 - `/comparar/ciudad/[a]-vs-[b]` Comparativa entre ciudades.
+- `/comparar?mode=pais&a=chile&b=espana` Comparador con parámetros precargados.
+- `/comparar?mode=ciudad&a=madrid&b=barcelona` Comparador de ciudades precargado.

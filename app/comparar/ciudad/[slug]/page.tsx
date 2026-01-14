@@ -11,16 +11,12 @@ import {
 import {
   buildComparePairs,
   getComparableMetricsForCity,
+  getSuggestedComparisons,
   getTopCities,
   metricPreferences
 } from "../../../../lib/compare";
+import { buildCompareDetailPath, parseCompareSlug } from "../../../../lib/url";
 import { buildBreadcrumbs, buildFAQPage, buildMetadata, siteConfig } from "../../../../lib/seo";
-
-const parseCompareSlug = (slug: string) => {
-  const [aSlug, bSlug] = slug.split("-vs-");
-  if (!aSlug || !bSlug) return null;
-  return { aSlug, bSlug };
-};
 
 const buildComparisonRows = (
   metricsA: ReturnType<typeof getComparableMetricsForCity>,
@@ -75,7 +71,7 @@ export const generateMetadata = async ({ params }: { params: { slug: string } })
   return buildMetadata({
     title: `${entityA.name} vs ${entityB.name}: comparación en ${metricsCount} métricas (2026)`,
     description: `Compara ${entityA.name} vs ${entityB.name} en costo de vida, seguridad, calidad de vida y más. Índices referenciales 2026 para decidir.`,
-    path: `/comparar/ciudad/${entityA.slug}-vs-${entityB.slug}`
+    path: buildCompareDetailPath("ciudad", entityA.slug, entityB.slug)
   });
 };
 
@@ -119,9 +115,16 @@ export default function CityComparePage({ params }: { params: { slug: string } }
 
   const itemListSchema = buildCompareItemListSchema(entityA.name, entityB.name, rows);
   const faqSchema = buildFAQPage(compareFaq);
+  const similarComparisons = getSuggestedComparisons("ciudad", entityA, entityB, 6).map(
+    (comparison) => ({
+      label: `${comparison.a.name} vs ${comparison.b.name}`,
+      href: buildCompareDetailPath("ciudad", comparison.a.slug, comparison.b.slug)
+    })
+  );
 
   return (
     <CompareDetail
+      compareMode="ciudad"
       entityTypeLabel="Ciudad"
       entityA={entityA}
       entityB={entityB}
@@ -131,6 +134,7 @@ export default function CityComparePage({ params }: { params: { slug: string } }
       rankingsA={entityA.rankings}
       rankingsB={entityB.rankings}
       relatedRankings={relatedRankings}
+      similarComparisons={similarComparisons}
       faq={compareFaq}
       breadcrumbs={breadcrumbs}
       faqSchema={faqSchema}
