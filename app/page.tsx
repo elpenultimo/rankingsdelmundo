@@ -79,7 +79,7 @@ export default function HomePage() {
           {categories.map((category) => (
             <Link
               key={category.key}
-              href={`/rankings?categoria=${category.key}`}
+              href={`/rankings?cat=${category.key}`}
               className="card p-6"
             >
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">

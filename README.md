@@ -40,3 +40,16 @@ npm run start
 ## Estructura de datos
 
 Los rankings viven en `data/rankings.ts`. Por ahora no hay base de datos y los datos son estáticos.
+
+## Rutas principales
+
+- `/` Home.
+- `/rankings` Listado con filtros y búsqueda.
+- `/ranking/[slug]` Detalle del ranking.
+- `/ranking/[slug]/region/[region]` Segmentación por región.
+- `/ranking/[slug]/anio/[year]` Segmentación por año.
+- `/ranking/[slug]/region/[region]/anio/[year]` Segmentación por región y año.
+- `/paises` Listado de países.
+- `/ciudades` Listado de ciudades.
+- `/pais/[slug]` Perfil de país.
+- `/ciudad/[slug]` Perfil de ciudad.
