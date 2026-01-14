@@ -57,6 +57,8 @@ Los rankings viven en `data/rankings.ts`. Por ahora no hay base de datos y los d
 
 - `/` Home.
 - `/rankings` Listado con filtros y búsqueda.
+- `/categorias` Índice de categorías de rankings.
+- `/categoria/[cat]` Hubs temáticos por categoría (paises, ciudades, dinero, clima, vida).
 - `/ranking/[slug]` Detalle del ranking.
 - `/ranking/[slug]/region/[region]` Segmentación por región.
 - `/ranking/[slug]/anio/[year]` Segmentación por año.

@@ -13,6 +13,9 @@ export const Header = () => (
         </p>
       </div>
       <nav className="flex flex-wrap items-center gap-4">
+        <Link href="/categorias" className="link-muted">
+          Categorías
+        </Link>
         <Link href="/rankings" className="link-muted">
           Rankings
         </Link>

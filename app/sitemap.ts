@@ -2,13 +2,26 @@ import type { MetadataRoute } from "next";
 import { getEntities } from "../data/entities";
 import { rankings } from "../data/rankings";
 import { rankingYears, regionKeys } from "../data/taxonomy";
+import { categoryKeys } from "../lib/categories";
 import { buildComparePairs, getTopCities, getTopCountries } from "../lib/compare";
 import { siteConfig } from "../lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = siteConfig.url;
-  const staticRoutes = ["/", "/rankings", "/paises", "/ciudades", "/comparar"].map((route) => ({
+  const staticRoutes = [
+    "/",
+    "/rankings",
+    "/paises",
+    "/ciudades",
+    "/comparar",
+    "/categorias"
+  ].map((route) => ({
     url: `${baseUrl}${route}`,
+    lastModified: new Date()
+  }));
+
+  const categoryRoutes = categoryKeys.map((categoryKey) => ({
+    url: `${baseUrl}/categoria/${categoryKey}`,
     lastModified: new Date()
   }));
 
@@ -66,6 +79,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...rankingRegionRoutes,
     ...rankingYearRoutes,
     ...rankingRegionYearRoutes,
+    ...categoryRoutes,
     ...countryRoutes,
     ...cityRoutes,
     ...compareCountryRoutes,
