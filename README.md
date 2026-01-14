@@ -53,3 +53,6 @@ Los rankings viven en `data/rankings.ts`. Por ahora no hay base de datos y los d
 - `/ciudades` Listado de ciudades.
 - `/pais/[slug]` Perfil de país.
 - `/ciudad/[slug]` Perfil de ciudad.
+- `/comparar` Home de comparaciones.
+- `/comparar/pais/[a]-vs-[b]` Comparativa entre países.
+- `/comparar/ciudad/[a]-vs-[b]` Comparativa entre ciudades.

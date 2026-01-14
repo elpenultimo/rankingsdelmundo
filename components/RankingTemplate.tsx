@@ -4,6 +4,7 @@ import { RankingExplore } from "./RankingExplore";
 import { RelatedRankings } from "./RelatedRankings";
 import { CategoryChip } from "./CategoryChips";
 import type { Ranking, RankingItem } from "../data/rankings";
+import { buildComparePairs, getTopCities, getTopCountries } from "../lib/compare";
 
 export const RankingTemplate = ({
   ranking,
@@ -27,8 +28,26 @@ export const RankingTemplate = ({
   breadcrumbs: object;
   faqSchema: object;
   itemListSchema: object;
-}) => (
-  <div className="container-page space-y-10 py-12">
+}) => {
+  const compareType = ranking.category === "ciudades" ? "ciudad" : "pais";
+  const popularList = compareType === "ciudad" ? getTopCities(6) : getTopCountries(6);
+  const nameBySlug = new Map(popularList.map((item) => [item.slug, item.name]));
+  const comparePairs = buildComparePairs(popularList, 2);
+  const compareLinks = comparePairs
+    .map((pair) => {
+      const [aSlug, bSlug] = pair.split("-vs-");
+      const aName = nameBySlug.get(aSlug);
+      const bName = nameBySlug.get(bSlug);
+      if (!aName || !bName) return null;
+      return {
+        slug: pair,
+        label: `${aName} vs ${bName}`
+      };
+    })
+    .filter(Boolean) as { slug: string; label: string }[];
+
+  return (
+    <div className="container-page space-y-10 py-12">
     <section className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <CategoryChip category={ranking.category} />
@@ -85,6 +104,27 @@ export const RankingTemplate = ({
       <RelatedRankings rankings={related} />
     </section>
 
+    {compareLinks.length ? (
+      <section className="space-y-4">
+        <h2 className="section-title">¿Quieres comparar?</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {compareLinks.map((link) => (
+            <Link key={link.slug} href={`/comparar/${compareType}/${link.slug}`} className="card p-4">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                {link.label}
+              </h3>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                Comparativa rápida con índices referenciales.
+              </p>
+            </Link>
+          ))}
+        </div>
+        <Link href="/comparar" className="text-sm font-semibold text-brand-600">
+          Ver más comparaciones →
+        </Link>
+      </section>
+    ) : null}
+
     <section className="rounded-3xl border border-brand-100 bg-brand-50 p-8 text-center dark:border-brand-900/40 dark:bg-brand-900/20">
       <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Explora más rankings</h2>
       <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
@@ -111,4 +151,5 @@ export const RankingTemplate = ({
       dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
     />
   </div>
-);
+  );
+};
