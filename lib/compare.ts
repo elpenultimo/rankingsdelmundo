@@ -172,6 +172,29 @@ export const getComparableMetricsForCountry = (name: string): Metric[] =>
 export const getComparableMetricsForCity = (name: string): Metric[] =>
   getComparableMetricsForEntity("ciudad", name);
 
+export const getTopMetrics = (
+  metrics: Metric[],
+  limit: number,
+  preferredKeys: string[] = []
+): Metric[] => {
+  const unique = new Map<string, Metric>();
+  metrics.forEach((metric) => {
+    if (!unique.has(metric.key)) {
+      unique.set(metric.key, metric);
+    }
+  });
+
+  const preferred = preferredKeys
+    .map((key) => unique.get(key))
+    .filter(Boolean) as Metric[];
+
+  preferred.forEach((metric) => {
+    unique.delete(metric.key);
+  });
+
+  return [...preferred, ...unique.values()].slice(0, limit);
+};
+
 export const metricPreferences = Object.fromEntries(
   Object.entries(metricDefinitions).map(([slug, definition]) => [
     definition.key ?? slug,
