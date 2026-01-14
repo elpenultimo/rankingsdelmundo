@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { CompareMode } from "../lib/url";
 import { buildCompareLandingUrl, swapCompareSlugInPath } from "../lib/url";
+import { trackEvent } from "../lib/metrics/client";
 import { Toast } from "./Toast";
 
 type ShareBarProps = {
@@ -34,6 +35,8 @@ export const ShareBar = ({ mode, entityA, entityB, className }: ShareBarProps) =
   const pathname = usePathname();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeout = useRef<number | null>(null);
+  const metricScope = mode === "pais" ? "compare_pais" : "compare_ciudad";
+  const compareSlug = `${entityA.slug}-vs-${entityB.slug}`;
 
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
@@ -49,9 +52,10 @@ export const ShareBar = ({ mode, entityA, entityB, className }: ShareBarProps) =
     const url = getCurrentUrl();
     if (!url) return;
     await copyToClipboard(url);
+    trackEvent("copy_link", metricScope, compareSlug);
     console.info("[share] copy", { url });
     showToast("Enlace copiado");
-  }, [showToast]);
+  }, [compareSlug, metricScope, showToast]);
 
   const handleShare = useCallback(async () => {
     const url = getCurrentUrl();
@@ -63,6 +67,7 @@ export const ShareBar = ({ mode, entityA, entityB, className }: ShareBarProps) =
           text: "Comparación rápida: costo de vida, seguridad y más.",
           url
         });
+        trackEvent("share", metricScope, compareSlug);
         console.info("[share] native", { url });
         showToast("Enlace compartido");
         return;
@@ -73,7 +78,7 @@ export const ShareBar = ({ mode, entityA, entityB, className }: ShareBarProps) =
       }
     }
     await handleCopy();
-  }, [entityA.name, entityB.name, handleCopy, showToast]);
+  }, [compareSlug, entityA.name, entityB.name, handleCopy, metricScope, showToast]);
 
   const handleSwap = useCallback(() => {
     const nextPath = swapCompareSlugInPath(pathname, entityA.slug, entityB.slug);

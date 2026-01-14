@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { RankingTemplate } from "../../../../../components/RankingTemplate";
+import { TrackView } from "../../../../../components/TrackView";
 import { rankings, getRankingBySlug } from "../../../../../data/rankings";
 import {
   buildBreadcrumbs,
@@ -15,6 +16,7 @@ import {
   buildSegmentTitle
 } from "../../../../../lib/rankingSegments";
 import { isRankingYear, rankingYears } from "../../../../../data/taxonomy";
+import { buildRankingMetricSlug } from "../../../../../lib/metrics/utils";
 
 export const generateStaticParams = () =>
   rankings.flatMap((ranking) =>
@@ -75,17 +77,23 @@ export default function RankingYearPage({
   });
 
   return (
-    <RankingTemplate
-      ranking={ranking}
-      items={ranking.items}
-      pageTitle={buildSegmentTitle({ ranking, year: params.year })}
-      description={buildSegmentDescription({ ranking, year: params.year })}
-      introLines={buildSegmentIntro({ year: params.year })}
-      methodologyNote={buildMethodologyNote({ ranking, year: params.year })}
-      related={related}
-      breadcrumbs={breadcrumbs}
-      faqSchema={faqSchema}
-      itemListSchema={itemListSchema}
-    />
+    <>
+      <TrackView
+        scope="ranking"
+        slug={buildRankingMetricSlug({ slug: ranking.slug, year: params.year })}
+      />
+      <RankingTemplate
+        ranking={ranking}
+        items={ranking.items}
+        pageTitle={buildSegmentTitle({ ranking, year: params.year })}
+        description={buildSegmentDescription({ ranking, year: params.year })}
+        introLines={buildSegmentIntro({ year: params.year })}
+        methodologyNote={buildMethodologyNote({ ranking, year: params.year })}
+        related={related}
+        breadcrumbs={breadcrumbs}
+        faqSchema={faqSchema}
+        itemListSchema={itemListSchema}
+      />
+    </>
   );
 }

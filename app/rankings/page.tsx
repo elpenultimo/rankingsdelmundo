@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { RankingsExplorer } from "../../components/RankingsExplorer";
+import { TrendingList } from "../../components/TrendingList";
 import { rankings } from "../../data/rankings";
 import { rankingYears, regionKeys } from "../../data/taxonomy";
 import { categories, categoryKeys } from "../../lib/categories";
+import { getTrendingRankings } from "../../lib/metrics/trending";
 import { buildMetadata } from "../../lib/seo";
 
 export const metadata = buildMetadata({
@@ -11,7 +13,7 @@ export const metadata = buildMetadata({
   path: "/rankings"
 });
 
-export default function RankingsPage({
+export default async function RankingsPage({
   searchParams
 }: {
   searchParams?: {
@@ -28,8 +30,20 @@ export default function RankingsPage({
   const initialQuery = searchParams?.q ?? "";
   const initialSort = searchParams?.sort;
 
+  const trendingRankings = await getTrendingRankings(7, 8);
+
   return (
     <div className="container-page space-y-8 py-12">
+      {trendingRankings.length ? (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+              Trending
+            </p>
+            <TrendingList title="Rankings más vistos esta semana" items={trendingRankings} columns={2} />
+          </div>
+        </section>
+      ) : null}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 text-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

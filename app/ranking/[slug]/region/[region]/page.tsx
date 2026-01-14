@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { RankingTemplate } from "../../../../../components/RankingTemplate";
+import { TrackView } from "../../../../../components/TrackView";
 import { rankings, getRankingBySlug } from "../../../../../data/rankings";
 import {
   buildBreadcrumbs,
@@ -17,6 +18,7 @@ import {
 } from "../../../../../lib/rankingSegments";
 import { regionLabels } from "../../../../../lib/regions";
 import { isRankingRegion, regionKeys } from "../../../../../data/taxonomy";
+import { buildRankingMetricSlug } from "../../../../../lib/metrics/utils";
 
 export const generateStaticParams = () =>
   rankings.flatMap((ranking) =>
@@ -79,17 +81,23 @@ export default function RankingRegionPage({
   });
 
   return (
-    <RankingTemplate
-      ranking={ranking}
-      items={items}
-      pageTitle={buildSegmentTitle({ ranking, region: params.region })}
-      description={buildSegmentDescription({ ranking, region: params.region })}
-      introLines={buildSegmentIntro({ region: params.region })}
-      methodologyNote={buildMethodologyNote({ ranking })}
-      related={related}
-      breadcrumbs={breadcrumbs}
-      faqSchema={faqSchema}
-      itemListSchema={itemListSchema}
-    />
+    <>
+      <TrackView
+        scope="ranking"
+        slug={buildRankingMetricSlug({ slug: ranking.slug, region: params.region })}
+      />
+      <RankingTemplate
+        ranking={ranking}
+        items={items}
+        pageTitle={buildSegmentTitle({ ranking, region: params.region })}
+        description={buildSegmentDescription({ ranking, region: params.region })}
+        introLines={buildSegmentIntro({ region: params.region })}
+        methodologyNote={buildMethodologyNote({ ranking })}
+        related={related}
+        breadcrumbs={breadcrumbs}
+        faqSchema={faqSchema}
+        itemListSchema={itemListSchema}
+      />
+    </>
   );
 }

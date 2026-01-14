@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Toast } from "../../components/Toast";
 import { getCityEntities, getCountryEntities } from "../../lib/compare";
+import { trackEvent } from "../../lib/metrics/client";
 import { isCompareMode, type CompareMode } from "../../lib/url";
 
 const variantOptions = [
@@ -31,7 +33,9 @@ export const EmbedGeneratorClient = () => {
   const [selectionB, setSelectionB] = useState("");
   const [variant, setVariant] = useState("default");
   const [theme, setTheme] = useState("auto");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const didInit = useRef(false);
+  const toastTimeout = useRef<number | null>(null);
 
   const countryEntities = useMemo(() => getCountryEntities(), []);
   const cityEntities = useMemo(() => getCityEntities(), []);
@@ -89,6 +93,35 @@ export const EmbedGeneratorClient = () => {
   }, [mode, pathname, selectionA, selectionB, theme, variant]);
 
   const iframeCode = `<iframe src="${embedUrl}" width="480" height="320" style="border:0" loading="lazy"></iframe>`;
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    if (toastTimeout.current) {
+      window.clearTimeout(toastTimeout.current);
+    }
+    toastTimeout.current = window.setTimeout(() => setToastMessage(null), 2200);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  };
+
+  const handleCopyEmbed = async () => {
+    await copyToClipboard(iframeCode);
+    trackEvent("embed_copy", "home", "embed");
+    showToast("Código copiado");
+  };
 
   return (
     <div className="container-page space-y-8 py-12">
@@ -200,8 +233,16 @@ export const EmbedGeneratorClient = () => {
           <code className="break-all rounded-xl bg-slate-100 px-3 py-2 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
             {iframeCode}
           </code>
+          <button
+            type="button"
+            onClick={handleCopyEmbed}
+            className="w-fit rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          >
+            Copiar código
+          </button>
         </div>
       </div>
+      {toastMessage ? <Toast message={toastMessage} /> : null}
     </div>
   );
 };

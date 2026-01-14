@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import { CompareLanding } from "../../components/CompareLanding";
+import { TrendingList } from "../../components/TrendingList";
+import { getMostCompared } from "../../lib/metrics/trending";
 import { buildMetadata } from "../../lib/seo";
 
 export const generateMetadata = async () =>
@@ -10,10 +12,19 @@ export const generateMetadata = async () =>
     path: "/comparar"
   });
 
-export default function ComparePage() {
+export default async function ComparePage() {
+  const mostCompared = await getMostCompared(30, 10);
+
   return (
-    <Suspense fallback={<div className="container-page py-12 text-sm text-slate-500">Cargando…</div>}>
-      <CompareLanding />
-    </Suspense>
+    <div className="space-y-10">
+      {mostCompared.length ? (
+        <section className="container-page pt-12">
+          <TrendingList title="Más comparados" items={mostCompared} columns={2} />
+        </section>
+      ) : null}
+      <Suspense fallback={<div className="container-page py-12 text-sm text-slate-500">Cargando…</div>}>
+        <CompareLanding />
+      </Suspense>
+    </div>
   );
 }

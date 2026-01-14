@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { RelatedRankings } from "../../../components/RelatedRankings";
+import { TrackView } from "../../../components/TrackView";
 import { getEntities, getEntityBySlug } from "../../../data/entities";
 import { rankings } from "../../../data/rankings";
 import { getTopCities } from "../../../lib/compare";
@@ -43,6 +44,7 @@ export default function CityPage({ params }: { params: { slug: string } }) {
 
   return (
     <div className="container-page space-y-10 py-12">
+      <TrackView scope="ciudad" slug={params.slug} />
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Ciudad</p>
         <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">{entity.name}</h1>
