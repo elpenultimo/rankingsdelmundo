@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { Ranking } from "../data/rankings";
+import type { Ranking, RankingItem } from "../data/rankings";
 
 export const siteConfig = {
   name: "Rankings del Mundo",
@@ -67,11 +67,14 @@ export const buildFAQPage = (faq: { q: string; a: string }[]) => ({
   }))
 });
 
-export const buildItemList = (ranking: Ranking) => ({
+export const buildItemList = (
+  ranking: Ranking,
+  options?: { name?: string; items?: RankingItem[] }
+) => ({
   "@context": "https://schema.org",
   "@type": "ItemList",
-  name: ranking.title,
-  itemListElement: ranking.items.map((item) => ({
+  name: options?.name ?? ranking.title,
+  itemListElement: (options?.items ?? ranking.items).map((item) => ({
     "@type": "ListItem",
     position: item.rank,
     name: item.name,

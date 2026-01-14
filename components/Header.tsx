@@ -16,8 +16,11 @@ export const Header = () => (
         <Link href="/rankings" className="link-muted">
           Rankings
         </Link>
-        <Link href="/" className="link-muted">
-          Categorías
+        <Link href="/paises" className="link-muted">
+          Países
+        </Link>
+        <Link href="/ciudades" className="link-muted">
+          Ciudades
         </Link>
         <ThemeToggle />
       </nav>

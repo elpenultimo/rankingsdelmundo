@@ -1,5 +1,6 @@
 import { RankingsExplorer } from "../../components/RankingsExplorer";
 import { rankings } from "../../data/rankings";
+import { rankingYears, regionKeys } from "../../data/taxonomy";
 import { buildMetadata } from "../../lib/seo";
 
 export const metadata = buildMetadata({
@@ -11,9 +12,19 @@ export const metadata = buildMetadata({
 export default function RankingsPage({
   searchParams
 }: {
-  searchParams?: { categoria?: string };
+  searchParams?: {
+    cat?: string;
+    region?: string;
+    year?: string;
+    q?: string;
+    sort?: string;
+  };
 }) {
-  const initialCategory = searchParams?.categoria;
+  const initialCategory = searchParams?.cat;
+  const initialRegion = searchParams?.region;
+  const initialYear = searchParams?.year;
+  const initialQuery = searchParams?.q ?? "";
+  const initialSort = searchParams?.sort;
 
   return (
     <div className="container-page space-y-8 py-12">
@@ -37,6 +48,18 @@ export default function RankingsPage({
             ? initialCategory
             : "todas"
         }
+        initialRegion={
+          initialRegion && regionKeys.includes(initialRegion as (typeof regionKeys)[number])
+            ? (initialRegion as (typeof regionKeys)[number])
+            : "todas"
+        }
+        initialYear={
+          initialYear && rankingYears.includes(initialYear as (typeof rankingYears)[number])
+            ? (initialYear as (typeof rankingYears)[number])
+            : "todas"
+        }
+        initialQuery={initialQuery}
+        initialSort={initialSort === "alpha" || initialSort === "updated" ? initialSort : "relevance"}
       />
     </div>
   );
